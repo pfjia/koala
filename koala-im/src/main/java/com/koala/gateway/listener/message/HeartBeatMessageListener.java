@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component("HEART_BEAT")
-public class HeartBeatMessageListener implements MessageListener {
+public class HeartBeatMessageListener implements ServerMessageListener {
 
     @Autowired
     private ConnectionManager connectionManager;

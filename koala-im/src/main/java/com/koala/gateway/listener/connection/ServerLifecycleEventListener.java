@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class ConnectionEventListener implements ConnectionListener {
+public class ServerLifecycleEventListener implements ServerLifecycleListener {
 
     @Autowired
     private ConnectionManager connectionManager;

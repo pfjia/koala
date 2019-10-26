@@ -1,13 +1,11 @@
 package com.koala.gateway.handler;
 
 import com.alibaba.fastjson.JSON;
-import com.koala.gateway.connection.ConnectionManager;
-import com.koala.gateway.connection.ConnectionParam;
 import com.koala.gateway.dto.KoalaResponse;
 import com.koala.gateway.dto.KoalaRequest;
 import com.koala.gateway.enums.EnumRequestType;
 import com.koala.gateway.enums.EnumResponseStatus;
-import com.koala.gateway.listener.message.MessageListener;
+import com.koala.gateway.listener.message.ServerMessageListener;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,12 +27,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<KoalaRequest> {
 
     @Autowired
-    private Map<String,MessageListener> listenerMap = new ConcurrentHashMap<>();
+    private Map<String, ServerMessageListener> listenerMap = new ConcurrentHashMap<>();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, KoalaRequest msg){
 
-        MessageListener messageListener = listenerMap.get(msg.getType());
+        ServerMessageListener messageListener = listenerMap.get(msg.getType());
 
         KoalaResponse response = messageListener.receive(msg);
 

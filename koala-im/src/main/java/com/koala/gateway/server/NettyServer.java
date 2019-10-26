@@ -1,5 +1,6 @@
 package com.koala.gateway.server;
 
+import com.koala.gateway.initializer.WebSocketAcceptorChannelInitializer;
 import com.koala.gateway.initializer.WebSocketChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -29,6 +30,9 @@ public class NettyServer {
     private final EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
 
     @Autowired
+    private WebSocketAcceptorChannelInitializer webSocketAcceptorChannelInitializer;
+
+    @Autowired
     private WebSocketChannelInitializer webSocketChannelInitializer;
 
     public void start(int port) throws Exception{
@@ -41,6 +45,7 @@ public class NettyServer {
             .channel(NioServerSocketChannel.class)
             .option(ChannelOption.SO_BACKLOG, 2048)
             .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
+                .handler(webSocketAcceptorChannelInitializer)
             .childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
             .childOption(ChannelOption.TCP_NODELAY, true)
             .childOption(ChannelOption.SO_REUSEADDR, true)

@@ -1,7 +1,7 @@
 package com.koala.gateway.handler;
 
 import com.koala.gateway.connection.ConnectionParam;
-import com.koala.gateway.listener.connection.ConnectionListener;
+import com.koala.gateway.listener.connection.ServerLifecycleListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -22,7 +22,7 @@ import java.util.List;
 public class ConnectionHandler  extends SimpleChannelInboundHandler<Object> {
 
     @Autowired
-    private List<ConnectionListener> connectionListeners;
+    private List<ServerLifecycleListener> serverLifecycleListeners;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -30,8 +30,8 @@ public class ConnectionHandler  extends SimpleChannelInboundHandler<Object> {
 
         ConnectionParam connectionParam = ctx.channel().attr(ConnectionParam.CHANNEL_PARAM).get();
 
-        if(CollectionUtils.isNotEmpty(connectionListeners)){
-            connectionListeners.forEach(listener -> {
+        if(CollectionUtils.isNotEmpty(serverLifecycleListeners)){
+            serverLifecycleListeners.forEach(listener -> {
                 try{
                     listener.connect(connectionParam,ctx.channel());
                 }catch (Exception e){
@@ -48,8 +48,8 @@ public class ConnectionHandler  extends SimpleChannelInboundHandler<Object> {
         super.channelInactive(ctx);
 
         ConnectionParam connectionParam = ctx.channel().attr(ConnectionParam.CHANNEL_PARAM).get();
-        if(CollectionUtils.isNotEmpty(connectionListeners)){
-            connectionListeners.forEach(listener -> {
+        if(CollectionUtils.isNotEmpty(serverLifecycleListeners)){
+            serverLifecycleListeners.forEach(listener -> {
                 try{
                     listener.close(connectionParam);
                 }catch (Exception e){

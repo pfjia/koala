@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component("CHAT_MSG_SEND")
-public class ChatMessageSendListener implements MessageListener {
+public class ChatMessageSendListener implements ServerMessageListener {
 
     @Override
     public KoalaResponse receive(KoalaRequest koalaRequest) {

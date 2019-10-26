@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,12 +44,22 @@ public class WebSocketChannelInitializer extends ChannelInitializer<NioSocketCha
     @Override
     protected void initChannel(NioSocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
+        //编解码
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(GatewayConstants.MAX_AGGREGATED_CONTENT_LENGTH));
         pipeline.addLast(new ChunkedWriteHandler());
         pipeline.addLast(new WebSocketServerProtocolHandler(WS_URI, null, true, GatewayConstants.MAX_FRAME_LENGTH));
         pipeline.addLast(new WebSocketJsonDecoder());
         pipeline.addLast(new WebSocketJsonEncoder());
+
+        //连接管理
+
+        pipeline.addLast("serverIdleHandler",new IdleStateHandler(0,0,GatewayConstants.SERVER_IDLE_TIME_IN_SECONDS));
+
+
+        //消息管理
+
+
         pipeline.addLast(websocketServerHandler);
         pipeline.addLast(badRequestHandler);
 
