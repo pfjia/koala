@@ -2,6 +2,7 @@ package com.koala.gateway.listener.connection;
 
 import com.koala.gateway.connection.ConnectionParam;
 import com.koala.gateway.server.NettyServer;
+import com.koala.gateway.server.Server;
 import io.netty.channel.Channel;
 
 
@@ -21,14 +22,14 @@ public interface ServerLifecycleListener {
      * 服务端绑定成功     * </pre>
      * * @param server 服务端
      */
-    void bindSuccess(NettyServer server);
+    void bindSuccess(Server server);
 
     /**
      * <pre>
      * 服务端绑定失败     * </pre>
      * * @param server 服务端     * @param cause  绑定失败的原因
      */
-    void bindFailed(NettyServer server, Throwable cause);
+    void bindFailed(Server server, Throwable cause);
 
     /**
      * <pre>
@@ -36,7 +37,7 @@ public interface ServerLifecycleListener {
      *
      * @param server
      */
-    void serverClosed(NettyServer server);
+    void serverClosed(Server server);
 
     /**
      * <pre>
@@ -44,14 +45,14 @@ public interface ServerLifecycleListener {
      *  @param server 建立连接的Server
      *  @param stream 连接Stream
      */
-    void accept(NettyServer server, Channel stream);
+    void accept(Server server, Channel stream);
 
     /**
      * <pre>
      * 当前的Server关闭了一个连接Stream     * </pre>
      * * @param server 连接的Server     * @param stream 连接Stream
      */
-    void close(NettyServer server, Channel stream);
+    void close(Server server, Channel stream);
 
     /**
      * <pre>
@@ -60,12 +61,12 @@ public interface ServerLifecycleListener {
      * @param server 连接的Server
      * @param stream 连接Stream
      */
-    void idle(NettyServer server, Channel stream);
+    void idle(Server server, Channel stream);
 
     /**
      * <pre>
      * 当前的Server上的Stream出现了异常     * </pre>
      * * @param server 连接的Server     * @param stream 连接Stream     * @param cause  问题
      */
-    void exceptionCaught(NettyServer server, Channel stream, Throwable cause);
+    void exceptionCaught(Server server, Channel stream, Throwable cause);
 }

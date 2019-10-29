@@ -1,12 +1,19 @@
 package com.koala.gateway.initializer;
 
+import java.util.List;
+
 import com.koala.gateway.constants.GatewayConstants;
 import com.koala.gateway.encoder.WebSocketJsonDecoder;
 import com.koala.gateway.encoder.WebSocketJsonEncoder;
 import com.koala.gateway.handler.BadRequestHandler;
+import com.koala.gateway.handler.NettyServerStreamHandler;
 import com.koala.gateway.handler.WebSocketServerHandler;
+import com.koala.gateway.listener.connection.ServerLifecycleListener;
+import com.koala.gateway.listener.message.ServerMessageListener;
+import com.koala.gateway.server.Server;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -22,14 +29,26 @@ import org.springframework.stereotype.Component;
  * @date 2019/10/14
  */
 @Slf4j
-@Component
-public class WebSocketChannelInitializer extends ChannelInitializer<NioSocketChannel> {
+public class WebSocketChannelInitializer extends ChannelInitializer<SocketChannel> {
+
+
+    private List<ServerMessageListener> serverMessageListenerList;
+
+    private List<ServerLifecycleListener> serverLifecycleListenerList;
+
+    private Server server;
 
     @Autowired
     private WebSocketServerHandler websocketServerHandler;
 
     @Autowired
     private BadRequestHandler badRequestHandler;
+
+    public WebSocketChannelInitializer(Server server,List<ServerLifecycleListener> serverLifecycleListenerList,List<ServerMessageListener> serverMessageListenerList) {
+        this.server=server;
+        this.serverLifecycleListenerList=serverLifecycleListenerList;
+        this.serverMessageListenerList=serverMessageListenerList;
+    }
 
     private static final String WS_URI = "/ws";
 
@@ -42,7 +61,7 @@ public class WebSocketChannelInitializer extends ChannelInitializer<NioSocketCha
      * @throws Exception
      */
     @Override
-    protected void initChannel(NioSocketChannel ch) throws Exception {
+    protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         //编解码
         pipeline.addLast(new HttpServerCodec());
@@ -53,15 +72,13 @@ public class WebSocketChannelInitializer extends ChannelInitializer<NioSocketCha
         pipeline.addLast(new WebSocketJsonEncoder());
 
         //连接管理
-
         pipeline.addLast("serverIdleHandler",new IdleStateHandler(0,0,GatewayConstants.SERVER_IDLE_TIME_IN_SECONDS));
 
 
         //消息管理
-
-
-        pipeline.addLast(websocketServerHandler);
-        pipeline.addLast(badRequestHandler);
+        pipeline.addLast("serverHandler",new NettyServerStreamHandler(
+            server,serverLifecycleListenerList,serverMessageListenerList
+        ));
 
     }
 

@@ -2,6 +2,8 @@ package com.koala.gateway.listener.message;
 
 import com.koala.gateway.dto.KoalaRequest;
 import com.koala.gateway.dto.KoalaResponse;
+import com.koala.gateway.server.Server;
+import io.netty.channel.*;
 
 /**
  * <pre>
@@ -17,33 +19,54 @@ import com.koala.gateway.dto.KoalaResponse;
  */
 public interface ServerMessageListener {
 
-    KoalaResponse receive(KoalaRequest koalaRequest);
+    /**
+     * <pre>
+     * 服务端{@link Server} 开始通过 {@link Channel} 写出一个数据
+     *
+     * </pre>
+     *
+     * @param server  服务端
+     * @param stream  连接
+     * @param message 数据
+     */
+    void write(Server server, Channel stream, KoalaResponse message);
 
     /**
      * <pre>
-     * 服务端{@link Server} 开始通过 {@link ServerStream} 写出一个数据     *     * </pre>
-     * * @param server  服务端     * @param stream  连接     * @param message 数据
+     * 服务端{@link Server} 通过{@link Channel} 写出一个数据完毕
+     *
+     * </pre>
+     *
+     * @param server  服务端
+     * @param stream  连接
+     * @param message 数据
      */
-    void write(Server server, ServerStream stream, ResponsePacket message);
+    void writeSuccess(Server server, Channel stream, KoalaResponse message);
 
     /**
      * <pre>
-     * 服务端{@link Server} 通过{@link ServerStream} 写出一个数据完毕     *     * </pre>
-     * * @param server  服务端     * @param stream  连接     * @param message 数据
+     * 服务端{@link Server} 通过{@link Channel} 写出一个数据失败
+     *
+     * </pre>
+     *
+     * @param server  服务端
+     * @param stream  连接
+     * @param message 数据
+     * @param cause   错误原因
      */
-    void writeSuccess(Server server, ServerStream stream, ResponsePacket message);
+    void writeFailed(Server server, Channel stream,  KoalaResponse message, Throwable cause);
 
     /**
      * <pre>
-     * 服务端{@link Server} 通过{@link ServerStream} 写出一个数据失败     *     * </pre>
-     * * @param server  服务端     * @param stream  连接     * @param message 数据     * @param cause   错误原因
+     * 服务端{@link Server} 通过{@link Channel} 收到一个数据
+     *
+     * </pre>
+     *
+     * @param server        服务端
+     * @param stream        连接
+     * @param requestPacket 数据
+     * @return koalaResponse
      */
-    void writeFailed(Server server, ServerStream stream, ResponsePacket message, Throwable cause);
+    KoalaResponse received(Server server, Channel stream, KoalaRequest requestPacket);
 
-    /**
-     * <pre>
-     * 服务端{@link Server} 通过{@link ServerStream} 收到一个数据     *     * </pre>
-     * * @param server        服务端     * @param stream        连接     * @param requestPacket 数据
-     */
-    void received(Server server, ServerStream stream, RequestPacket requestPacket);
 }

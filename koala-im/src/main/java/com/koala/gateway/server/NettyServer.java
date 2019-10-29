@@ -1,10 +1,18 @@
 package com.koala.gateway.server;
 
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.koala.gateway.initializer.WebSocketAcceptorChannelInitializer;
 import com.koala.gateway.initializer.WebSocketChannelInitializer;
+import com.koala.gateway.listener.connection.ServerLifecycleListener;
+import com.koala.gateway.listener.message.ServerMessageListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
@@ -13,30 +21,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * @author XiuYang
  * @date 2019/09/30
  */
 @Slf4j
 @Component
-public class NettyServer {
+public class NettyServer extends AbstractServer {
 
     private final AtomicBoolean startFlag = new AtomicBoolean(false);
 
     private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
 
-    @Autowired
-    private WebSocketAcceptorChannelInitializer webSocketAcceptorChannelInitializer;
 
     @Autowired
-    private WebSocketChannelInitializer webSocketChannelInitializer;
+    private List<ServerMessageListener> serverMessageListenerList;
 
-    public void start(int port) throws Exception{
-        if(!startFlag.compareAndSet(false,true)){
+    @Autowired
+    private List<ServerLifecycleListener> serverLifecycleListenerList;
+
+    public void start(int port) throws Exception {
+        if (!startFlag.compareAndSet(false, true)) {
             return;
         }
         ServerBootstrap bootstrap = new ServerBootstrap()
@@ -45,11 +51,13 @@ public class NettyServer {
             .channel(NioServerSocketChannel.class)
             .option(ChannelOption.SO_BACKLOG, 2048)
             .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
-                .handler(webSocketAcceptorChannelInitializer)
+            .handler(new WebSocketAcceptorChannelInitializer(this, serverLifecycleListenerList))
             .childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
             .childOption(ChannelOption.TCP_NODELAY, true)
             .childOption(ChannelOption.SO_REUSEADDR, true)
-            .childHandler(webSocketChannelInitializer);
+            .childHandler(new WebSocketChannelInitializer(
+                this,serverLifecycleListenerList,serverMessageListenerList
+            ));
 
         ChannelFuture future = bootstrap.bind(new InetSocketAddress(port)).sync();
         if (future.isSuccess()) {
@@ -61,8 +69,6 @@ public class NettyServer {
         future.channel().closeFuture().sync();
     }
 
-
-
     /**
      * 关闭
      */
@@ -73,5 +79,25 @@ public class NettyServer {
         if (workerGroup != null) {
             workerGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    protected void doClose() {
+
+    }
+
+    @Override
+    protected void doBind(String hostName, int port) {
+
+    }
+
+    @Override
+    public void closing() {
+
+    }
+
+    @Override
+    public boolean isNeedExport() {
+        return false;
     }
 }
